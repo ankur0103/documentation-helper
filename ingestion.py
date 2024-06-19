@@ -1,19 +1,15 @@
 import os
-
-OPENAI_API_KEY = ""
-os.environ["openai_api_key"] = OPENAI_API_KEY
-
-from langchain_community.document_loaders import ReadTheDocsLoader
+from dotenv import load_dotenv
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import ReadTheDocsLoader
 from langchain_pinecone import PineconeVectorStore
 from langchain_openai import OpenAIEmbeddings
 from pinecone import Pinecone
 
-INDEX_NAME = "langchain-doc-index"
-PINECONE_API_KEY = ""
+from consts import INDEX_NAME
 
-
-pc = Pinecone(api_key=PINECONE_API_KEY)
+load_dotenv()
+pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
 
 
 def ingest_docs():
@@ -29,14 +25,14 @@ def ingest_docs():
     print(f"Splitted into {len(documents)} chunks")
 
     for doc in documents:
-        new_url = doc.metadata["source"]
+        new_url = doc.metadata["source"];
         new_url = new_url.replace("langchain-docs", "https:/")
         doc.metadata.update({"source": new_url})
 
     print(f"Going to add {len(documents)} to Pinecone")
 
     embeddings = OpenAIEmbeddings()
-    PineconeVectorStore.from_documents(documents, embeddings, index_name=INDEX_NAME)
+    PineconeVectorStore.from_documents(documents, embeddings, INDEX_NAME)
     print("****Loading to vectorstore done ***")
 
 
